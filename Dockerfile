@@ -4,26 +4,26 @@
 #  We split the RUN layers to cache them separately to fasten the rebuild process
 #  in case of build fails during multi-stage builds.
 # -----------------------------------------------------------------------------
-FROM alpine:latest AS build
+FROM --platform=linux/amd64 centos:7.9.2009 AS build
 
 COPY run-test.sh /run-test.sh
 
 # Install dependencies
 RUN \
-  apk update && \
-  apk upgrade && \
-  apk add \
-    alpine-sdk \
-    build-base  \
-    tcl-dev \
-    tk-dev \
-    mesa-dev \
-    jpeg-dev \
-    libjpeg-turbo-dev
+  yum install -y wget gcc tcl-devel make which
+#   apk upgrade && \
+#   apk add \
+#     alpine-sdk \
+#     build-base  \
+#     tcl-dev \
+#     tk-dev \
+#     mesa-dev \
+#     jpeg-dev \
+#     libjpeg-turbo-dev
 
 # Download latest release
 RUN \
-  wget \
+  wget --no-check-certificate\
     -O sqlite.tar.gz \
     https://www.sqlite.org/src/tarball/sqlite.tar.gz?r=release && \
   tar xvfz sqlite.tar.gz
@@ -41,7 +41,7 @@ RUN \
 # -----------------------------------------------------------------------------
 #  Main Stage
 # -----------------------------------------------------------------------------
-FROM alpine:latest
+FROM --platform=linux/amd64 centos:7.9.2009
 
 COPY --from=build /usr/bin/sqlite3 /usr/bin/sqlite3
 COPY run-test.sh /run-test.sh
@@ -51,14 +51,14 @@ ENV \
   USER_SQLITE=sqlite \
   GROUP_SQLITE=sqlite
 RUN \
-  addgroup -S $GROUP_SQLITE && \
-  adduser  -S $USER_SQLITE -G $GROUP_SQLITE
+  groupadd -r $GROUP_SQLITE && \
+  useradd  -r $USER_SQLITE -g $GROUP_SQLITE
 
 # Set user
 USER $USER_SQLITE
 
 # Run simple test
-RUN /run-test.sh
+#RUN /run-test.sh
 
 # Set container's default command as `sqlite3`
 CMD /usr/bin/sqlite3
