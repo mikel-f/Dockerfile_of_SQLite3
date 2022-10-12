@@ -11,15 +11,7 @@ COPY run-test.sh /run-test.sh
 # Install dependencies
 RUN \
   yum install -y wget gcc tcl-devel make which
-#   apk upgrade && \
-#   apk add \
-#     alpine-sdk \
-#     build-base  \
-#     tcl-dev \
-#     tk-dev \
-#     mesa-dev \
-#     jpeg-dev \
-#     libjpeg-turbo-dev
+
 
 # Download latest release
 RUN \
@@ -52,7 +44,9 @@ ENV \
   GROUP_SQLITE=sqlite
 RUN \
   groupadd -r $GROUP_SQLITE && \
-  useradd  -r $USER_SQLITE -g $GROUP_SQLITE
+  useradd  -r $USER_SQLITE -g $GROUP_SQLITE && \
+  mkdir /home/$USER_SQLITE && \
+  chown $USER_SQLITE:$GROUP_SQLITE /home/$USER_SQLITE
 
 # Set user
 USER $USER_SQLITE
